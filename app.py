@@ -7,6 +7,7 @@ INTERPRETACIONES = {
     "ENFERMEDAD LEVE": "Crisis leve. Manejo ambulatorio con analgesia e hidratación oral.",
     "ENFERMEDAD AGUDA": "Crisis moderada. Observación hospitalaria, analgesia IV e hidratación.",
     "ENFERMEDAD CRÓNICA": "Crisis grave / Síndrome Torácico Agudo. Hospitalización urgente.",
+    "ENFERMEDAD TERMINAL": "Estado crítico. Riesgo vital inminente, atención de emergencia y UCI.",
 }
 
 
@@ -30,7 +31,11 @@ def predecir_crisis(spo2: float, dolor: int, hemoglobina: float,
     - ENFERMEDAD LEVE         → crisis leve, manejo ambulatorio
     - ENFERMEDAD AGUDA        → crisis moderada, observación hospitalaria
     - ENFERMEDAD CRÓNICA      → crisis grave / síndrome torácico agudo
+    - ENFERMEDAD TERMINAL     → estado crítico con riesgo vital inminente
     """
+    # Estado crítico
+    if spo2 < 85 or frecuencia_respiratoria > 40 or hemoglobina < 4:
+        return "ENFERMEDAD TERMINAL"
     # Crisis grave o síndrome torácico agudo
     if spo2 < 90 or frecuencia_respiratoria > 30 or hemoglobina < 5:
         return "ENFERMEDAD CRÓNICA"
