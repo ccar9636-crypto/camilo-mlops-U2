@@ -23,6 +23,9 @@
         .estado-interpretacion { margin-top: 6px; font-size: 0.95em; }
         .error { margin-top: 20px; padding: 15px; background: #ffebee; border: 1px solid #ef9a9a; border-radius: 4px; }
         .nota { font-size: 0.85em; color: #888; margin-top: 28px; border-top: 1px solid #eee; padding-top: 12px; }
+        .stats-link { margin-top: 14px; }
+        .stats-link a { color: #0d47a1; font-weight: bold; text-decoration: none; }
+        .stats-link a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -76,6 +79,10 @@
     {% if error %}
         <div class="error"><strong>Error:</strong> {{ error }}</div>
     {% endif %}
+
+    <p class="stats-link">
+        Ver reporte JSON de estadísticas: <a href="/estadisticas" target="_blank">/estadisticas</a>
+    </p>
 
     <p class="nota">
         Este servicio es académico. No representa un modelo clínico validado y no debe usarse para tomar decisiones médicas reales.

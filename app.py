@@ -1,6 +1,20 @@
+import json
+import os
+from datetime import datetime, timezone
+
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
+
+ESTADOS = [
+    "NO ENFERMO",
+    "ENFERMEDAD LEVE",
+    "ENFERMEDAD AGUDA",
+    "ENFERMEDAD CRÓNICA",
+    "ENFERMEDAD TERMINAL",
+]
+
+STATS_FILE = os.environ.get("STATS_FILE", "data/estadisticas_predicciones.json")
 
 INTERPRETACIONES = {
     "NO ENFERMO": "Sin crisis drepanocítica activa. Control ambulatorio de rutina.",
@@ -9,6 +23,58 @@ INTERPRETACIONES = {
     "ENFERMEDAD CRÓNICA": "Crisis grave / Síndrome Torácico Agudo. Hospitalización urgente.",
     "ENFERMEDAD TERMINAL": "Estado crítico. Riesgo vital inminente, atención de emergencia y UCI.",
 }
+
+
+def _estadisticas_base() -> dict:
+    return {
+        "total_por_categoria": {estado: 0 for estado in ESTADOS},
+        "ultimas_5_predicciones": [],
+        "fecha_ultima_prediccion": None,
+    }
+
+
+def cargar_estadisticas() -> dict:
+    if not os.path.exists(STATS_FILE):
+        return _estadisticas_base()
+
+    try:
+        with open(STATS_FILE, "r", encoding="utf-8") as archivo:
+            data = json.load(archivo)
+    except (json.JSONDecodeError, OSError):
+        return _estadisticas_base()
+
+    base = _estadisticas_base()
+    base["total_por_categoria"].update(data.get("total_por_categoria", {}))
+    base["ultimas_5_predicciones"] = data.get("ultimas_5_predicciones", [])[-5:]
+    base["fecha_ultima_prediccion"] = data.get("fecha_ultima_prediccion")
+    return base
+
+
+def guardar_estadisticas(estadisticas: dict) -> None:
+    carpeta = os.path.dirname(STATS_FILE)
+    if carpeta:
+        os.makedirs(carpeta, exist_ok=True)
+
+    with open(STATS_FILE, "w", encoding="utf-8") as archivo:
+        json.dump(estadisticas, archivo, ensure_ascii=False, indent=2)
+
+
+def registrar_prediccion(entrada: dict, resultado: str) -> None:
+    estadisticas = cargar_estadisticas()
+    estadisticas["total_por_categoria"][resultado] = (
+        estadisticas["total_por_categoria"].get(resultado, 0) + 1
+    )
+
+    registro = {
+        "fecha": datetime.now(timezone.utc).isoformat(),
+        "resultado": resultado,
+        "entrada": entrada,
+    }
+    historial = estadisticas.get("ultimas_5_predicciones", [])
+    historial.append(registro)
+    estadisticas["ultimas_5_predicciones"] = historial[-5:]
+    estadisticas["fecha_ultima_prediccion"] = registro["fecha"]
+    guardar_estadisticas(estadisticas)
 
 
 def predecir_crisis(spo2: float, dolor: int, hemoglobina: float,
@@ -71,17 +137,19 @@ def predecir():
         resultado = predecir_crisis(spo2, dolor, hemoglobina, fiebre,
                                     frecuencia_respiratoria, crisis_previas_6m)
         interpretacion = INTERPRETACIONES[resultado]
+        entrada = {
+            "spo2": spo2,
+            "dolor": dolor,
+            "hemoglobina": hemoglobina,
+            "fiebre": fiebre,
+            "frecuencia_respiratoria": frecuencia_respiratoria,
+            "crisis_previas_6m": crisis_previas_6m,
+        }
+        registrar_prediccion(entrada, resultado)
 
         if request.is_json:
             return jsonify({
-                "entrada": {
-                    "spo2": spo2,
-                    "dolor": dolor,
-                    "hemoglobina": hemoglobina,
-                    "fiebre": fiebre,
-                    "frecuencia_respiratoria": frecuencia_respiratoria,
-                    "crisis_previas_6m": crisis_previas_6m,
-                },
+                "entrada": entrada,
                 "resultado": resultado,
                 "interpretacion_clinica": interpretacion,
             })
@@ -99,6 +167,11 @@ def predecir():
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.route("/estadisticas", methods=["GET"])
+def estadisticas():
+    return jsonify(cargar_estadisticas())
 
 
 if __name__ == "__main__":
