@@ -38,7 +38,7 @@ Para que la propuesta sea ejecutable, se asumen las siguientes condiciones:
 
 ## Arquitectura general
 
-El diagrama general del pipeline se resume en la siguiente secuencia de etapas, equivalente a la figura conceptual del proceso end-to-end:
+El diagrama general del pipeline se resume en la siguiente secuencia de etapas, equivalente a la figura conceptual del proceso end-to-end. La imagen funciona como vista sintetica del flujo principal; las tecnologias de nube y CI/CD se entienden como capas de implementacion para las etapas de despliegue, monitoreo y mejora continua.
 
 ![Pipeline de aprendizaje automático clínico](Pipeline_MLOps.jpeg)
 
@@ -168,16 +168,16 @@ El modelo aprobado se empaqueta como servicio de inferencia.
 
 **Justificacion:** Docker asegura portabilidad. La API permite desacoplar la inferencia de la interfaz y facilita integrar la solucion en otros sistemas clinicos.
 
-### 10.1 Tecnologias de nube recomendadas
+### 10.1 Implementacion en nube
 
 Para desplegar la solucion en la nube, se pueden considerar dos alternativas principales:
 
 - **AWS:** S3 para almacenamiento de datos y artefactos, SageMaker para entrenamiento o despliegue administrado, ECS o EKS para contenedores, Lambda para tareas ligeras y CloudWatch para observabilidad.
 - **GCP:** Cloud Storage para almacenamiento, Vertex AI para entrenamiento y serving, Cloud Run para API contenedorizada, GKE para orquestacion y Cloud Monitoring para trazabilidad operativa.
 
-**Justificacion:** AWS y GCP son opciones maduras y escalables. AWS resulta util si se busca un ecosistema amplio de servicios administrados; GCP es fuerte en flujos de ML integrados con Vertex AI y despliegue rapido con Cloud Run.
+**Justificacion:** AWS y GCP son opciones maduras y escalables. En este pipeline no reemplazan ninguna etapa de la imagen; se usan para implementar de forma administrada el almacenamiento, entrenamiento, despliegue y observabilidad.
 
-### 10.2 Integracion continua y despliegue continuo
+### 10.2 Automatizacion CI/CD
 
 GitHub Actions se puede ubicar como capa de automatizacion del repositorio para validar cambios antes de desplegar.
 
@@ -189,7 +189,7 @@ Un flujo tipico puede incluir:
 - publicacion del artefacto o despliegue a un entorno de pruebas,
 - aprobacion manual para llevar a produccion si aplica.
 
-**Justificacion:** GitHub Actions permite que cada cambio quede verificado automaticamente, lo que mejora la calidad del repositorio y reduce errores al pasar a produccion. En esta propuesta encaja especialmente bien junto a Docker y al despliegue en nube.
+**Justificacion:** GitHub Actions no es una etapa del pipeline clinico, sino la automatizacion que valida, construye y publica la solucion. Encaja como soporte transversal para las etapas de versionamiento, empaquetado y despliegue.
 
 ### 11. Monitoreo en produccion
 
