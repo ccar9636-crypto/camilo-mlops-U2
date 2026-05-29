@@ -40,7 +40,7 @@ Para que la propuesta sea ejecutable, se asumen las siguientes condiciones:
 
 El diagrama general del pipeline se resume en la siguiente secuencia de etapas, equivalente a la figura conceptual del proceso end-to-end. La imagen funciona como vista sintetica del flujo principal; las tecnologias de nube y CI/CD se entienden como capas de implementacion para las etapas de despliegue, monitoreo y mejora continua.
 
-![Pipeline de aprendizaje automático clínico](Pipeline_MLOps.jpeg)
+![Pipeline de aprendizaje automático clínico](Pipeline2.png)
 
 La imagen anterior resume las etapas del pipeline y puede leerse como referencia visual del flujo completo end-to-end.
 
