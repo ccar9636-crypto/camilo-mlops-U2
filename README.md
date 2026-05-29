@@ -38,21 +38,11 @@ Para que la propuesta sea ejecutable, se asumen las siguientes condiciones:
 
 ## Arquitectura general
 
-```mermaid
-flowchart LR
-   A[Fuentes de datos clinicos] --> B[Ingesta y validacion]
-   B --> C[Versionamiento de datos]
-   C --> D[EDA y preparacion de features]
-   D --> E[Entrenamiento y tuning]
-   E --> F[Tracking de experimentos]
-   F --> G[Evaluacion y aprobacion]
-   G --> H[Registro de modelo]
-   H --> I[Empaquetado y despliegue]
-   I --> J[Inferencia local o via API]
-   J --> K[Monitoreo y logging]
-   K --> L[Deteccion de deriva y retraining]
-   L --> D
-```
+El diagrama general del pipeline se resume en la siguiente secuencia de etapas, equivalente a la figura conceptual del proceso end-to-end:
+
+![Pipeline de aprendizaje automático clínico](Pipeline_MLOps.jpeg)
+
+La imagen anterior resume las etapas del pipeline y puede leerse como referencia visual del flujo completo end-to-end.
 
 ## Pipeline propuesto
 
@@ -178,6 +168,29 @@ El modelo aprobado se empaqueta como servicio de inferencia.
 
 **Justificacion:** Docker asegura portabilidad. La API permite desacoplar la inferencia de la interfaz y facilita integrar la solucion en otros sistemas clinicos.
 
+### 10.1 Tecnologias de nube recomendadas
+
+Para desplegar la solucion en la nube, se pueden considerar dos alternativas principales:
+
+- **AWS:** S3 para almacenamiento de datos y artefactos, SageMaker para entrenamiento o despliegue administrado, ECS o EKS para contenedores, Lambda para tareas ligeras y CloudWatch para observabilidad.
+- **GCP:** Cloud Storage para almacenamiento, Vertex AI para entrenamiento y serving, Cloud Run para API contenedorizada, GKE para orquestacion y Cloud Monitoring para trazabilidad operativa.
+
+**Justificacion:** AWS y GCP son opciones maduras y escalables. AWS resulta util si se busca un ecosistema amplio de servicios administrados; GCP es fuerte en flujos de ML integrados con Vertex AI y despliegue rapido con Cloud Run.
+
+### 10.2 Integracion continua y despliegue continuo
+
+GitHub Actions se puede ubicar como capa de automatizacion del repositorio para validar cambios antes de desplegar.
+
+Un flujo tipico puede incluir:
+
+- ejecucion de pruebas unitarias y de integracion en cada `pull request`,
+- validacion de formato o linting,
+- construccion de la imagen Docker,
+- publicacion del artefacto o despliegue a un entorno de pruebas,
+- aprobacion manual para llevar a produccion si aplica.
+
+**Justificacion:** GitHub Actions permite que cada cambio quede verificado automaticamente, lo que mejora la calidad del repositorio y reduce errores al pasar a produccion. En esta propuesta encaja especialmente bien junto a Docker y al despliegue en nube.
+
 ### 11. Monitoreo en produccion
 
 La operacion no termina con el despliegue. Debe monitorearse el comportamiento del modelo y de los datos.
@@ -217,6 +230,8 @@ Cuando el monitoreo detecte degradacion, se activa un proceso de reentrenamiento
 | Tracking | MLflow, W&B | Centralizar metricas y artefactos |
 | Registro | MLflow Registry | Aprobar y versionar modelos |
 | Despliegue | Flask o FastAPI, Docker, Kubernetes | Portabilidad y escalabilidad |
+| Nube | AWS o GCP | Despliegue administrado, almacenamiento y observabilidad |
+| CI/CD | GitHub Actions | Automatizar pruebas, build y despliegue |
 | Monitoreo | Prometheus, Grafana, Evidently AI | Vigilar salud del sistema |
 
 ## Como se resuelve la restriccion de uso local o en nube
